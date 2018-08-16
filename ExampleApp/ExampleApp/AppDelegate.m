@@ -61,7 +61,7 @@
 
 -(void) audioPlayerViewPlayFromHTTPSelected:(AudioPlayerView*)audioPlayerView
 {
-    NSURL* url = [NSURL URLWithString:@"http://www.abstractpath.com/files/audiosamples/sample.mp3"];
+    NSURL* url = [NSURL URLWithString:@"http://wting.info/asdb/renwensheke/shws/e6aorf0w.mp3"];
     
     STKDataSource* dataSource = [STKAudioPlayer dataSourceFromURL:url];
     
@@ -70,7 +70,7 @@
 
 -(void) audioPlayerViewPlayFromIcecastSelected:(AudioPlayerView *)audioPlayerView
 {
-    NSURL* url = [NSURL URLWithString:@"http://nashe.streamr.ru/jazz-128.mp3"];
+    NSURL* url = [NSURL URLWithString:@"https://enaudio.ating.info/qYMF3rQyEZvED3OT5LVODu4stik=/lgvQJEcGz4d_LvvP2GtKBg43jbLS?sign=c48fb04120cfe396007f7087384df5d0&t=5b77c447"];
     
     STKDataSource* dataSource = [STKAudioPlayer dataSourceFromURL:url];
     
