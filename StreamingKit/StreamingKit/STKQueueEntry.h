@@ -15,7 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface STKQueueEntry : NSObject
 {
 @public
-    OSSpinLock spinLock;
+    pthread_mutex_t spinLock;
     
     BOOL parsedHeader;
     Float64 sampleRate;
