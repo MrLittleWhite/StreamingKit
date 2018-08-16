@@ -76,6 +76,7 @@ typedef NS_ENUM(NSInteger, STKAudioPlayerErrorCode)
     STKAudioPlayerErrorAudioSystemError,
     STKAudioPlayerErrorCodecError,
     STKAudioPlayerErrorDataNotFound,
+    STKAudioPlayerErrorDataInvalid, //401地址失效错误
     STKAudioPlayerErrorOther = 0xffff
 };
 
