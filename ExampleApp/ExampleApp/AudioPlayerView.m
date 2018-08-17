@@ -311,10 +311,17 @@
 	{
 		[playButton setTitle:@"Pause" forState:UIControlStateNormal];
 	}
-	else
+	else if (audioPlayer.state & STKAudioPlayerStateBuffering)
 	{
-		[playButton setTitle:@"" forState:UIControlStateNormal];
+		[playButton setTitle:@"buffering" forState:UIControlStateNormal];
 	}
+    else if (audioPlayer.state & STKAudioPlayerStateError)
+    {
+        [playButton setTitle:@"error" forState:UIControlStateNormal];
+    }
+    else {
+        [playButton setTitle:@"" forState:UIControlStateNormal];
+    }
     
     [self tick];
 }
