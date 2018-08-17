@@ -1620,6 +1620,24 @@ static void AudioFileStreamPacketsProc(void* clientData, UInt32 numberBytes, UIn
     [self unexpectedError:STKAudioPlayerErrorDataNotFound];
 }
 
+-(BOOL) isWaitingForDataSource:(STKDataSource*)dataSourceIn {
+    if (currentlyReadingEntry.dataSource != dataSourceIn) {
+        return NO;
+    }
+    
+    STKAudioPlayerInternalState playState = STKAudioPlayerInternalStateInitialised;
+    
+    pthread_mutex_lock(&playerMutex);
+    playState = self.internalState;
+    pthread_mutex_lock(&playerMutex);
+    
+    BOOL isWaiting = playState == STKAudioPlayerInternalStateRebuffering
+    || playState == STKAudioPlayerInternalStateWaitingForData
+    || playState == STKAudioPlayerInternalStateWaitingForDataAfterSeek;
+    
+    return isWaiting;
+}
+
 -(void) dataSourceEof:(STKDataSource*)dataSourceIn
 {
     if (currentlyReadingEntry == nil || currentlyReadingEntry.dataSource != dataSourceIn)

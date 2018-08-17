@@ -65,6 +65,7 @@ static uint64_t GetTickCount(void)
 {
     int serial;
 	int waitSeconds;
+    int hasRetryTimes;
     NSTimer* timeoutTimer;
     BOOL waitingForNetwork;
     uint64_t ticksWhenLastDataReceived;
@@ -301,6 +302,7 @@ static void PopulateOptionsWithDefault(STKAutoRecoveringHTTPDataSourceOptions* o
     
     serial++;
     waitSeconds = 1;
+    hasRetryTimes = 0;
     ticksWhenLastDataReceived = GetTickCount();
     
     [super dataSourceDataAvailable:dataSource];
@@ -332,6 +334,19 @@ static void PopulateOptionsWithDefault(STKAutoRecoveringHTTPDataSourceOptions* o
     {
         waitingForNetwork = YES;
         
+        self.errorCode = STKDataSourceErrorNetwork;
+        
+        //播放器是否在等待数据
+        BOOL isWaiting = NO;
+        if ([self.delegate respondsToSelector:@selector(isWaitingForDataSource:)]) {
+            isWaiting = [self.delegate isWaitingForDataSource:self];
+        }
+        
+        //如果播放器在等待数据,又没有网络,抛出异常
+        if (isWaiting) {
+            [self.delegate dataSourceErrorOccured:self];
+        }
+        
         return;
     }
     
@@ -345,9 +360,18 @@ static void PopulateOptionsWithDefault(STKAutoRecoveringHTTPDataSourceOptions* o
         
         return;
     }
-    else
-    {
+    else if (hasRetryTimes >= 15 && self) {
+        
+        //尝试60秒后不再继续,抛出异常
+        
+        hasRetryTimes = 0;
+        [self.delegate dataSourceErrorOccured:self];
+        
+        return;
+    } else {
         serial++;
+        
+        hasRetryTimes ++;
         
         NSTimer* timer = [NSTimer timerWithTimeInterval:waitSeconds target:self selector:@selector(attemptReconnectWithTimer:) userInfo:@(serial) repeats:NO];
         

@@ -35,6 +35,14 @@
 #import <Foundation/Foundation.h>
 #include <AudioToolbox/AudioToolbox.h>
 
+typedef NS_ENUM(NSInteger, STKDataSourceErrorCode)
+{
+    STKDataSourceErrorNone = 0,
+    STKDataSourceErrorNetwork,
+    STKDataSourceErrorDataInvalid, //401地址失效错误
+    STKDataSourceErrorOther = 0xffff
+};
+
 NS_ASSUME_NONNULL_BEGIN
 
 @class STKDataSource;
@@ -44,6 +52,10 @@ NS_ASSUME_NONNULL_BEGIN
 -(void) dataSourceErrorOccured:(STKDataSource*)dataSource;
 -(void) dataSourceEof:(STKDataSource*)dataSource;
 -(void) dataSource:(STKDataSource*)dataSource didReadStreamMetadata:(NSDictionary*)metadata;
+
+@optional
+-(BOOL) isWaitingForDataSource:(STKDataSource*)dataSource;
+
 @end
 
 @interface STKDataSource : NSObject
@@ -55,6 +67,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readwrite, assign) double durationHint;
 @property (readwrite, unsafe_unretained, nullable) id<STKDataSourceDelegate> delegate;
 @property (nonatomic, strong, nullable) NSURL *recordToFileUrl;
+
+@property (nonatomic, assign) STKDataSourceErrorCode errorCode;
 
 -(BOOL) registerForEvents:(NSRunLoop*)runLoop;
 -(void) unregisterForEvents;
