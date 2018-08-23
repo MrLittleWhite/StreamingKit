@@ -971,7 +971,13 @@ static void AudioFileStreamPacketsProc(void* clientData, UInt32 numberBytes, UIn
     
     [self playbackThreadQueueMainThreadSyncBlock:^
     {
-        [self.delegate audioPlayer:self unexpectedError:errorCodeIn];
+        NSError *error = currentlyReadingEntry.dataSource.error;
+        if (error == nil) {
+            NSString *domain = NSStringFromClass([self class]);
+            error = [NSError errorWithDomain:domain code:errorCodeIn userInfo:@{NSLocalizedDescriptionKey:@"audio play error."}];
+        }
+        NSLog(@"%@ unexpectedError %@", NSStringFromClass([self class]), error.localizedDescription);
+        [self.delegate audioPlayer:self unexpectedError:error];
     }];
 }
 
@@ -1629,7 +1635,7 @@ static void AudioFileStreamPacketsProc(void* clientData, UInt32 numberBytes, UIn
     
     pthread_mutex_lock(&playerMutex);
     playState = self.internalState;
-    pthread_mutex_lock(&playerMutex);
+    pthread_mutex_unlock(&playerMutex);
     
     BOOL isWaiting = playState == STKAudioPlayerInternalStateRebuffering
     || playState == STKAudioPlayerInternalStateWaitingForData

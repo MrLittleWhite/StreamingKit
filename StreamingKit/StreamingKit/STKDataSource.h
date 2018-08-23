@@ -38,9 +38,10 @@
 typedef NS_ENUM(NSInteger, STKDataSourceErrorCode)
 {
     STKDataSourceErrorNone = 0,
-    STKDataSourceErrorNetwork,
-    STKDataSourceErrorDataInvalid, //401地址失效错误
-    STKDataSourceErrorOther = 0xffff
+    STKDataSourceErrorLocalFile,        //下载文件错误
+    STKDataSourceErrorNetwork,          //网络错误
+    STKDataSourceErrorCreateStream,     //创建流失败
+    STKDataSourceErrorOpenStream,       //打开流失败
 };
 
 NS_ASSUME_NONNULL_BEGIN
@@ -68,7 +69,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (readwrite, unsafe_unretained, nullable) id<STKDataSourceDelegate> delegate;
 @property (nonatomic, strong, nullable) NSURL *recordToFileUrl;
 
-@property (nonatomic, assign) STKDataSourceErrorCode errorCode;
+@property (nonatomic, strong, readwrite) NSError *error;
 
 -(BOOL) registerForEvents:(NSRunLoop*)runLoop;
 -(void) unregisterForEvents;

@@ -76,7 +76,6 @@ typedef NS_ENUM(NSInteger, STKAudioPlayerErrorCode)
     STKAudioPlayerErrorAudioSystemError,
     STKAudioPlayerErrorCodecError,
     STKAudioPlayerErrorDataNotFound,
-    STKAudioPlayerErrorDataInvalid, //401地址失效错误
     STKAudioPlayerErrorOther = 0xffff
 };
 
@@ -129,7 +128,7 @@ typedef void(^STKFrameFilter)(UInt32 channelsPerFrame, UInt32 bytesPerFrame, UIn
 /// Raised when an item has finished playing
 -(void) audioPlayer:(STKAudioPlayer*)audioPlayer didFinishPlayingQueueItemId:(NSObject*)queueItemId withReason:(STKAudioPlayerStopReason)stopReason andProgress:(double)progress andDuration:(double)duration;
 /// Raised when an unexpected and possibly unrecoverable error has occured (usually best to recreate the STKAudioPlauyer)
--(void) audioPlayer:(STKAudioPlayer*)audioPlayer unexpectedError:(STKAudioPlayerErrorCode)errorCode;
+-(void) audioPlayer:(STKAudioPlayer*)audioPlayer unexpectedError:(NSError *)error;
 @optional
 /// Optionally implemented to get logging information from the STKAudioPlayer (used internally for debugging)
 -(void) audioPlayer:(STKAudioPlayer*)audioPlayer logInfo:(NSString*)line;

@@ -39,6 +39,8 @@
     SInt64 position;
     SInt64 length;
     AudioFileTypeID audioFileTypeHint;
+    
+    NSError *_error;
 }
 @property (readwrite, copy) NSString* filePath;
 -(void) open;
@@ -115,6 +117,8 @@
 
 -(void) open
 {
+    self->_error = nil;
+    
     if (stream)
     {
         [self unregisterForEvents];
@@ -183,6 +187,8 @@
 
 -(void) seekToOffset:(SInt64)offset
 {
+    self->_error = nil;
+    
     CFStreamStatus status = kCFStreamStatusClosed;
     
     if (stream != 0)
@@ -202,8 +208,15 @@
     
     if (stream == 0)
     {
+        __block CFErrorRef streamError = CFReadStreamCopyError(stream);
         CFRunLoopPerformBlock(eventsRunLoop.getCFRunLoop, NSRunLoopCommonModes, ^
         {
+            if (streamError) {
+                self->_error = (__bridge_transfer NSError *)streamError;
+            } else {
+                NSString *domain = NSStringFromClass([self class]);
+                self->_error = [NSError errorWithDomain:domain code:STKDataSourceErrorLocalFile userInfo:@{NSLocalizedDescriptionKey:@"STKDataSourceErrorCode:STKDataSourceErrorLocalFile."}];
+            }
             [self errorOccured];
         });
         
@@ -233,6 +246,10 @@
         
         CFRunLoopWakeUp(eventsRunLoop.getCFRunLoop);
     }
+}
+
+- (NSError *)error {
+    return self->_error;
 }
 
 -(NSString*) description

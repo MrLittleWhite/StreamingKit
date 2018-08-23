@@ -71,6 +71,8 @@ static uint64_t GetTickCount(void)
     uint64_t ticksWhenLastDataReceived;
     SCNetworkReachabilityRef reachabilityRef;
     STKAutoRecoveringHTTPDataSourceOptions options;
+    
+    NSError *_error;
 }
 
 -(void) reachabilityChanged;
@@ -317,6 +319,8 @@ static void PopulateOptionsWithDefault(STKAutoRecoveringHTTPDataSourceOptions* o
     
     NSLog(@"attemptReconnect %lld/%lld", self.position, self.length);
     
+    self->_error = nil;
+    
 	if (self.innerDataSource.eventsRunLoop)
 	{
 		[self.innerDataSource reconnect];
@@ -334,7 +338,8 @@ static void PopulateOptionsWithDefault(STKAutoRecoveringHTTPDataSourceOptions* o
     {
         waitingForNetwork = YES;
         
-        self.errorCode = STKDataSourceErrorNetwork;
+        NSString *domain = NSStringFromClass([self class]);
+        self->_error = [NSError errorWithDomain:domain code:STKDataSourceErrorNetwork userInfo:@{NSLocalizedDescriptionKey:@"STKDataSourceErrorCode:STKDataSourceErrorNetwork."}];
         
         //播放器是否在等待数据
         BOOL isWaiting = NO;
@@ -344,6 +349,8 @@ static void PopulateOptionsWithDefault(STKAutoRecoveringHTTPDataSourceOptions* o
         
         //如果播放器在等待数据,又没有网络,抛出异常
         if (isWaiting) {
+            waitingForNetwork = NO;
+            hasRetryTimes = 0;
             [self.delegate dataSourceErrorOccured:self];
         }
         
@@ -360,7 +367,23 @@ static void PopulateOptionsWithDefault(STKAutoRecoveringHTTPDataSourceOptions* o
         
         return;
     }
-    else if (hasRetryTimes >= 15 && self) {
+    
+    if ([self.innerDataSource error] != nil) {
+        //播放器是否在等待数据
+        BOOL isWaiting = NO;
+        if ([self.delegate respondsToSelector:@selector(isWaitingForDataSource:)]) {
+            isWaiting = [self.delegate isWaitingForDataSource:self];
+        }
+        
+        //如果播放器在等待数据,又没有网络,抛出异常
+        if (isWaiting) {
+            hasRetryTimes = 0;
+            [self.delegate dataSourceErrorOccured:self];
+            return;
+        }
+    }
+    
+    if (hasRetryTimes >= 15 && self) {
         
         //尝试60秒后不再继续,抛出异常
         
@@ -368,16 +391,16 @@ static void PopulateOptionsWithDefault(STKAutoRecoveringHTTPDataSourceOptions* o
         [self.delegate dataSourceErrorOccured:self];
         
         return;
-    } else {
-        serial++;
-        
-        hasRetryTimes ++;
-        
-        NSTimer* timer = [NSTimer timerWithTimeInterval:waitSeconds target:self selector:@selector(attemptReconnectWithTimer:) userInfo:@(serial) repeats:NO];
-        
-        [runLoop addTimer:timer forMode:NSRunLoopCommonModes];
     }
     
+    serial++;
+    
+    hasRetryTimes ++;
+    
+    NSTimer* timer = [NSTimer timerWithTimeInterval:waitSeconds target:self selector:@selector(attemptReconnectWithTimer:) userInfo:@(serial) repeats:NO];
+    
+    [runLoop addTimer:timer forMode:NSRunLoopCommonModes];
+
     waitSeconds = MIN(waitSeconds + 1, 5);
 }
 
@@ -407,6 +430,13 @@ static void PopulateOptionsWithDefault(STKAutoRecoveringHTTPDataSourceOptions* o
     {
         [self processRetryOnError];
     }
+}
+
+- (NSError *)error {
+    if (self->_error) {
+        return self->_error;
+    }
+    return self.innerDataSource.error;
 }
 
 -(NSString*) description

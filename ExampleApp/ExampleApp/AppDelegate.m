@@ -61,7 +61,7 @@
 
 -(void) audioPlayerViewPlayFromHTTPSelected:(AudioPlayerView*)audioPlayerView
 {
-    NSURL* url = [NSURL URLWithString:@"http://wting.info/asdb/renwensheke/shws/e6aorf0w.mp3"];
+    NSURL* url = [NSURL URLWithString:@"http://kting.info/asdb/fiction/lishijunshi/gpshz/qwlxyaof.mp3"];
     
     STKDataSource* dataSource = [STKAudioPlayer dataSourceFromURL:url];
     

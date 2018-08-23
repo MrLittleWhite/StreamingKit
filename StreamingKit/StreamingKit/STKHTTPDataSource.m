@@ -40,6 +40,7 @@
 @private
     BOOL supportsSeek;
     UInt32 httpStatusCode;
+    NSError *_error;
     SInt64 seekStart;
     SInt64 relativePosition;
     SInt64 fileLength;
@@ -370,6 +371,9 @@
     }
     else if (self.httpStatusCode >= 300)
     {
+        NSString *domain = NSStringFromClass([self class]);
+        self->_error = [NSError errorWithDomain:domain code:self.httpStatusCode userInfo:@{NSLocalizedDescriptionKey:@"HTTP error."}];
+        
         [self errorOccured];
         
         return NO;
@@ -578,6 +582,8 @@
 
 -(void) openForSeek:(BOOL)forSeek
 {
+    self->_error = nil;
+    
 	int localRequestSerialNumber;
 	
 	requestSerialNumber++;
@@ -622,6 +628,8 @@
         {
             CFRelease(message);
 
+            NSString *domain = NSStringFromClass([self class]);
+            self->_error = [NSError errorWithDomain:domain code:STKDataSourceErrorCreateStream userInfo:@{NSLocalizedDescriptionKey:@"STKDataSourceErrorCode:STKDataSourceErrorCreateStream."}];
             [self errorOccured];
 
             return;
@@ -633,6 +641,10 @@
         {
             CFRelease(message);
 
+            CFErrorRef streamError = CFReadStreamCopyError(stream);
+            if (streamError) {
+                self->_error = (__bridge_transfer NSError *)streamError;
+            }
             [self errorOccured];
 
             return;
@@ -660,6 +672,14 @@
         // Open
         if (!CFReadStreamOpen(stream))
         {
+            CFErrorRef streamError = CFReadStreamCopyError(stream);
+            if (streamError) {
+                self->_error = (__bridge_transfer NSError *)streamError;
+            } else {
+                NSString *domain = NSStringFromClass([self class]);
+                self->_error = [NSError errorWithDomain:domain code:STKDataSourceErrorOpenStream userInfo:@{NSLocalizedDescriptionKey:@"STKDataSourceErrorCode:STKDataSourceErrorOpenStream."}];
+            }
+
             CFRelease(stream);
             CFRelease(message);
             
@@ -679,6 +699,10 @@
 -(UInt32) httpStatusCode
 {
     return self->httpStatusCode;
+}
+
+- (NSError *)error {
+    return self->_error;
 }
 
 -(NSRunLoop*) eventsRunLoop

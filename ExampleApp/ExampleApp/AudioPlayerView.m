@@ -349,7 +349,7 @@
 	[self updateControls];
 }
 
--(void) audioPlayer:(STKAudioPlayer*)audioPlayer unexpectedError:(STKAudioPlayerErrorCode)errorCode
+-(void) audioPlayer:(STKAudioPlayer*)audioPlayer unexpectedError:(NSError *)error
 {
 	[self updateControls];
 }
